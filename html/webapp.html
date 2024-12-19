@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celebrity Crush Match</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #chat {
+            margin-top: 20px;
+            display: none;
+        }
+
+        #chatMessages {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #chatInput {
+            width: calc(100% - 80px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #sendMessage {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #sendMessage:hover {
+            background-color: #45a049;
+        }
+
+        #compatibility {
+            margin-top: 20px;
+        }
+
+        .bar {
+            width: 100%;
+            background-color: #ccc;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .bar span {
+            display: block;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Celebrity Crush</h1>
+        <form id="crushForm">
+            <label for="height">What is your height?</label>
+            <input type="text" id="height" name="height" placeholder="e.g., 5'10" required>
+
+            <label for="gender">What is your gender?</label>
+            <select id="gender" name="gender" required>
+                <option value="">--Select--</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non-binary">Non-binary</option>
+            </select>
+
+            <label for="sport">What is your favorite sport?</label>
+            <input type="text" id="sport" name="sport" placeholder="e.g., Soccer" required>
+
+            <label for="color">What is your favorite color?</label>
+            <input type="text" id="color" name="color" placeholder="e.g., Blue" required>
+
+            <label for="food">What is your favorite type of food?</label>
+            <input type="text" id="food" name="food" placeholder="e.g., Italian" required>
+
+            <label for="place">What is your favorite place?</label>
+            <input type="text" id="place" name="place" placeholder="e.g., Paris" required>
+
+            <button type="button" onclick="findCrush()">Find My Crush</button>
+        </form>
+
+        <div id="result"></div>
+
+        <div id="compatibility"></div>
+
+        <button onclick="location.href='../../index.html'">Return to Home</button>
+
+
+            <h2>Chat with <span id="crushName"></span></h2>
+            <div id="chatMessages"></div>
+            <input type="text" id="chatInput" placeholder="Say something...">
+            <button id="sendMessage" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <script>
+        let crush = "";
+
+        function findCrush() {
+            const height = document.getElementById('height').value;
+            const gender = document.getElementById('gender').value;
+            const sport = document.getElementById('sport').value.toLowerCase();
+            const color = document.getElementById('color').value;
+            const food = document.getElementById('food').value.toLowerCase();
+            const place = document.getElementById('place').value;
+
+            let description = "";
+            let parsedHeight = 0;
+
+            // Ensure height parsing works for different input formats (e.g., "5'10", "6", "5")
+            if (height.includes("'")) {
+                const parts = height.split("'");
+                const feet = parseInt(parts[0], 10) || 0;
+                const inches = parseInt(parts[1], 10) || 0;
+                parsedHeight = feet * 12 + inches;
+            } else {
+                parsedHeight = parseInt(height, 10) || 0;
+            }
+
+            const celebrityFans = {
+                soccer: [
+                    { name: "David Beckham", desc: "A legendary soccer player with an iconic sense of style." },
+                    { name: "Shakira", desc: "A global pop star and philanthropist with a love for soccer." }
+                ],
+                basketball: [
+                    { name: "Spike Lee", desc: "A celebrated filmmaker and devoted basketball fan." },
+                    { name: "Rihanna", desc: "A superstar singer and fashion icon who loves basketball." }
+                ],
+                tennis: [
+                    { name: "Roger Federer", desc: "A tennis champion known for his elegance on and off the court." },
+                    { name: "Serena Williams", desc: "A tennis legend with unmatched skill and charisma." }
+                ],
+                baseball: [
+                    { name: "Billy Crystal", desc: "A comedian and actor who is a passionate baseball enthusiast." },
+                    { name: "Jennifer Lopez", desc: "A multi-talented performer and baseball fan." }
+                ],
+                football: [
+                    { name: "Matthew McConaughey", desc: "An Oscar-winning actor and die-hard football fan." },
+                    { name: "Gisele Bündchen", desc: "A supermodel and devoted supporter of football." }
+                ],
+            };
+
+            const foodLocations = {
+                italian: "Italy",
+                mexican: "Mexico",
+                japanese: "Japan",
+                indian: "India",
+                french: "France",
+                default: "a beautiful countryside estate"
+            };
+
+            let celebrity;
+
+            if (celebrityFans[sport]) {
+                celebrity = gender === "male" ? celebrityFans[sport][1] : celebrityFans[sport][0];
+                crush = celebrity.name;
+                description = celebrity.desc;
+            } else {
+                celebrity = { name: "Taylor Swift", desc: "A global music sensation with a knack for connecting through heartfelt lyrics." };
+                crush = celebrity.name;
+                description = celebrity.desc;
+            }
+
+            const numKids = Math.floor(Math.random() * 4) + 1;
+            const carColor = color;
+            const location = foodLocations[food] || foodLocations.default;
+
+            document.getElementById('result').innerHTML = 
+                `<p>Your ideal celebrity crush is: <strong>${crush}</strong>!</p>
+                 <p>${description}</p>
+                 <p>Together, you and ${crush} will get married in ${place}, drive a ${carColor} car, 
+                 have ${numKids} kid(s), and live in ${location}.</p>`;
+
+            const compatibility = (parsedHeight % 12 === 10 || parsedHeight % 12 === 11 || parsedHeight % 12 === 0) ? 10 : parsedHeight % 12;
+            document.getElementById('compatibility').innerHTML = 
+                `<div class="bar"><span style="width: ${compatibility * 10}%; background-color: #4CAF50;">Compatibility: ${compatibility}/10</span></div>`;
+
+            document.getElementById('chat').style.display = 'block';
+            document.getElementById('crushName').textContent = crush;
+
+            launchFireworks();
+        }
+
+        function launchFireworks() {
+            const canvas = document.getElementById('fireworksCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+
+            function createParticle(x, y, color) {
+                return {
+                    x,
+                    y,
+                    dx: (Math.random() - 0.5) * 10,
+                    dy: (Math.random() - 0.5) * 10,
+                    color,
+                    life: Math.random() * 100 + 50,
+                };
+            }
+
+            for (let i = 0; i < 100; i++) {
+                particles.push(createParticle(canvas.width / 2, canvas.height / 2, `hsl(${Math.random() * 360}, 100%, 50%)`));
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((particle, index) => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+
+                    particle.x += particle.dx;
+                    particle.y += particle.dy;
+                    particle.life--;
+
+                    if (particle.life <= 0) {
+                        particles.splice(index, 1);
+                    }
+                });
+
+                if (particles.length > 0) {
+                    requestAnimationFrame(drawParticles);
+                }
+            }
+
+            drawParticles();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            const userMessage = input.value;
+
+            if (userMessage.trim()) {
+                const userBubble = document.createElement('div');
+                userBubble.textContent = `You: ${userMessage}`;
+                messages.appendChild(userBubble);
+
+                const responseBubble = document.createElement('div');
+                responseBubble.textContent = `${crush}: That's so interesting! Tell me more!`;
+                responseBubble.style.marginTop = '10px';
+                messages.appendChild(responseBubble);
+
+                messages.scrollTop = messages.scrollHeight;
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
